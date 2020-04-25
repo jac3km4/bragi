@@ -1,0 +1,44 @@
+name:                bragi
+version:             0.1.0.0
+github:              "jac3km4/bragi"
+license:             BSD3
+author:              "jac3km4"
+maintainer:          "jac3km4@gmail.com"
+copyright:           "2020 jac3km4"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+description:         Please see the README on GitHub at <https://github.com/jac3km4/bragi#readme>
+
+default-extensions:
+- OverloadedStrings
+- DeriveFunctor
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  ghc-options:
+  - -Wall
+  dependencies:
+  - streamly >= 0.7.2
+  - streamly-bytestring >= 0.1
+  - bytestring >= 0.10
+  - bytestring-strict-builder >= 0.4
+  - mtl >= 2.2
+  - network >= 3.1
+  - exceptions >= 0.10
+
+tests:
+  bragi-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - bragi
+    - streamly >= 0.7.2
