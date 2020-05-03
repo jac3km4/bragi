@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b14198bbae205206e0c054f09b9ac8e5616b2092e6b7a62c63210c05be4a15b4
+-- hash: 9f1d2e45b0ab62c2c301f7e5a54208d9c78a738600f218ce278e8c43d2d19f50
 
 name:           bragi
 version:        0.1.0.0
@@ -35,7 +35,7 @@ library
       Paths_bragi
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings DeriveFunctor
+  default-extensions: OverloadedStrings DeriveFunctor StrictData
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
@@ -55,10 +55,11 @@ test-suite bragi-test
       Paths_bragi
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings DeriveFunctor
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: OverloadedStrings DeriveFunctor StrictData
+  ghc-options: -threaded -rtsopts "-with-rtsopts=-N -qg" -O -fdicts-strict
   build-depends:
       base >=4.7 && <5
     , bragi
+    , bytestring
     , streamly >=0.7.2
   default-language: Haskell2010

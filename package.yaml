@@ -14,6 +14,7 @@ description:         Please see the README on GitHub at <https://github.com/jac3
 default-extensions:
 - OverloadedStrings
 - DeriveFunctor
+- StrictData
 
 dependencies:
 - base >= 4.7 && < 5
@@ -38,7 +39,10 @@ tests:
     ghc-options:
     - -threaded
     - -rtsopts
-    - -with-rtsopts=-N
+    - '"-with-rtsopts=-N -qg"'
+    - -O
+    - -fdicts-strict
     dependencies:
     - bragi
     - streamly >= 0.7.2
+    - bytestring

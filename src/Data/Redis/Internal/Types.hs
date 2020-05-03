@@ -12,17 +12,19 @@ import Control.Exception (Exception)
 import Data.ByteString.Char8 (ByteString)
 import Data.Word (Word8)
 import Network.Socket (Socket)
-import Streamly.Internal.Data.Parser (Parser)
+import qualified Streamly.Internal.Data.Parser as PR
+import qualified Streamly.Internal.Data.Parser.ParserD as PRD
 
 data Command m a
-  = Command !Builder !(Parser m Word8 a)
+  = Command !Builder !(PR.Parser m Word8 a)
   deriving (Functor)
 
 instance (Monad m) => Applicative (Command m) where
   pure a = Command mempty (pure a)
   Command bs fk <*> Command bs' fa = Command (bs <> bs') (fk <*> fa)
 
-newtype StreamCommand m a = StreamCommand (Command m a)
+data StreamCommand m a
+  = StreamCommand !Builder !(PRD.Parser m Word8 a)
 
 newtype Redis
   = Redis
@@ -37,7 +39,7 @@ data Resp
   | RespArray Int
   deriving (Show)
 
-data RedisException
+newtype RedisException
   = RedisException String
   deriving (Show)
 

@@ -24,8 +24,8 @@ import Data.Redis.Internal.Types (RedisException (..), Resp (..))
 import Data.Word (Word8)
 import Streamly (SerialT)
 import qualified Streamly.Data.Fold as FL
-import Streamly.Internal.Data.Parser (Parser)
-import qualified Streamly.Internal.Data.Parser as PR
+import Streamly.Internal.Data.Parser.ParserD (Parser)
+import qualified Streamly.Internal.Data.Parser.ParserD as PR
 import qualified Streamly.Internal.Prelude as S
 
 resp :: MonadCatch m => Parser m Word8 Resp
@@ -40,9 +40,9 @@ string :: MonadThrow m => Parser m Word8 ByteString
 string = char '+' *> line
 
 bulkString :: MonadCatch m => Parser m Word8 (Maybe ByteString)
-bulkString = char '$' *> (empty <|> body)
+bulkString = char '$' *> (nothing <|> body)
   where
-    empty = char '-' *> char '1' $> Nothing
+    nothing = char '-' *> char '1' $> Nothing
     body = line *> fmap Just line
 
 int :: MonadThrow m => Parser m Word8 Int
@@ -62,7 +62,7 @@ line =
     <* char '\n'
 
 char :: MonadThrow m => Char -> Parser m Word8 Word8
-char c = PR.satisfy (== (toEnum (fromEnum c)))
+char c = PR.satisfy (== toEnum (fromEnum c))
 
 -- consumes an array header and returns the stream of underlying elements
 parseArray :: MonadThrow m => Parser m Word8 a -> SerialT m Word8 -> m (SerialT m a)

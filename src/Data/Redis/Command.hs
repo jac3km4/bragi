@@ -17,12 +17,13 @@ import Data.ByteString (ByteString)
 import Data.Redis.Internal.Protocol (Parser, bulkString, int, string, writeArray)
 import Data.Redis.Internal.Types (Command (..), StreamCommand (..))
 import Data.Word (Word8)
+import Streamly.Internal.Data.Parser.ParserD (toParserK)
 
-command :: [ByteString] -> Parser m Word8 a -> Command m a
-command parts parser = Command (writeArray parts) parser
+command :: MonadCatch m => [ByteString] -> Parser m Word8 a -> Command m a
+command parts parser = Command (writeArray parts) (toParserK parser)
 
 commandS :: [ByteString] -> Parser m Word8 a -> StreamCommand m a
-commandS bs = StreamCommand . command bs
+commandS parts = StreamCommand (writeArray parts)
 
 get :: MonadCatch m => ByteString -> Command m (Maybe ByteString)
 get k = command ["GET", k] bulkString

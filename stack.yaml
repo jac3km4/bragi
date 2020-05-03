@@ -1,5 +1,7 @@
-resolver: lts-15.10
+resolver: lts-15.11
 packages:
 - .
 extra-deps:
 - streamly-bytestring-0.1.2@sha256:cc828f41d1c714c711d38fb213b4ed186febabba598ab080e13255f69c20b13c,2469
+- github: composewell/streamly
+  commit: 500d187b8fb5b6b1bc424725dd179650fb41c49c

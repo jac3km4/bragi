@@ -11,9 +11,20 @@ packages:
       sha256: 2eae18eac1158eda2c647ddbe542a18463af2cc29b37acd86e46ed41c1e88fb9
   original:
     hackage: streamly-bytestring-0.1.2@sha256:cc828f41d1c714c711d38fb213b4ed186febabba598ab080e13255f69c20b13c,2469
+- completed:
+    size: 601508
+    url: https://github.com/composewell/streamly/archive/500d187b8fb5b6b1bc424725dd179650fb41c49c.tar.gz
+    name: streamly
+    version: 0.7.2
+    sha256: ad3d79811b74bebfc970207b99e27b3539372d2dee8dd920fd552662b749c9a1
+    pantry-tree:
+      size: 14058
+      sha256: 23636bd65833e3141aef7f67b7c0676aa8996d78a7c0d7ec62cbaf18d1bf59d3
+  original:
+    url: https://github.com/composewell/streamly/archive/500d187b8fb5b6b1bc424725dd179650fb41c49c.tar.gz
 snapshots:
 - completed:
-    size: 493124
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/10.yaml
-    sha256: 48bc6d1d59224a5166265ef6cdda6a512f29ecc8ef7331826312b82377e89507
-  original: lts-15.10
+    size: 494638
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/15/11.yaml
+    sha256: 5747328cdcbb8fe9c96fc048b5566167c80dd176a41b52d3b363058e3cc1dc5d
+  original: lts-15.11
