@@ -7,7 +7,8 @@ import qualified Streamly.Prelude as S
 
 main :: IO ()
 main = do
-  res <- Redis.runCmd ip port $ do
+  redis <- Redis.newPool address 1
+  res <- Redis.runCmd redis $ do
     _ <- Cmd.set "foo" "bar"
     r <- Cmd.get "foo"
     _ <- Cmd.hset "hah" "a" "b"
@@ -15,7 +16,6 @@ main = do
     pure r
   print res
   S.mapM_ print $
-    Redis.runStream ip port (Cmd.hgetall "hah")
+    Redis.runStream redis (Cmd.hgetall "hah")
   where
-    ip = (127, 0, 0, 1)
-    port = 6379
+    address = Redis.Address (127, 0, 0, 1) 6379

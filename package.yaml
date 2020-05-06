@@ -33,6 +33,7 @@ library:
   - mtl >= 2.2
   - network >= 3.1
   - exceptions >= 0.10
+  - kazura-queue >= 0.1
 
 tests:
   bragi-test:

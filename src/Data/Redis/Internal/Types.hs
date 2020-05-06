@@ -1,5 +1,7 @@
 module Data.Redis.Internal.Types
-  ( Redis (..),
+  ( Connection (..),
+    Redis (..),
+    Address (..),
     RedisException (..),
     Resp (..),
     Command (..),
@@ -8,15 +10,16 @@ module Data.Redis.Internal.Types
 where
 
 import ByteString.StrictBuilder (Builder)
+import Control.Concurrent.KazuraQueue (Queue)
 import Control.Exception (Exception)
 import Data.ByteString.Char8 (ByteString)
+import Data.IORef (IORef)
 import Data.Word (Word8)
-import Network.Socket (Socket)
-import qualified Streamly.Internal.Data.Parser as PR
-import qualified Streamly.Internal.Data.Parser.ParserD as PRD
+import Network.Socket (PortNumber, Socket)
+import Streamly.Internal.Data.Parser.ParserD (Parser)
 
 data Command m a
-  = Command !Builder !(PR.Parser m Word8 a)
+  = Command !Builder !(Parser m Word8 a)
   deriving (Functor)
 
 instance (Monad m) => Applicative (Command m) where
@@ -24,10 +27,18 @@ instance (Monad m) => Applicative (Command m) where
   Command bs fk <*> Command bs' fa = Command (bs <> bs') (fk <*> fa)
 
 data StreamCommand m a
-  = StreamCommand !Builder !(PRD.Parser m Word8 a)
+  = StreamCommand !Builder !(Parser m Word8 a)
 
-newtype Redis
+data Redis
   = Redis
+      { address :: Address,
+        maxSize :: Int,
+        connections :: Queue Connection,
+        active :: IORef Int
+      }
+
+newtype Connection
+  = Connection
       { socket :: Socket
       }
 
@@ -38,6 +49,12 @@ data Resp
   | RespBulkString (Maybe ByteString)
   | RespArray Int
   deriving (Show)
+
+data Address
+  = Address
+      { ip :: (Word8, Word8, Word8, Word8),
+        port :: PortNumber
+      }
 
 newtype RedisException
   = RedisException String

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d67164f2ad4ccefbe14672bfc3175fa0dad1a80c9f3f732dbc29803da633dd29
+-- hash: c12569204e93c186dedab355184988b0ba8fcbb1d470a83c65d315aed979aa2e
 
 name:           bragi
 version:        0.1.0.0
@@ -42,6 +42,7 @@ library
     , bytestring >=0.10
     , bytestring-strict-builder >=0.4
     , exceptions >=0.10
+    , kazura-queue >=0.1
     , mtl >=2.2
     , network >=3.1
     , streamly >=0.7.2

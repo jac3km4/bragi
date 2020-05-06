@@ -1,37 +1,66 @@
 module Data.Redis
-  ( run,
+  ( Redis,
+    Connection,
+    Address (..),
+    newPool,
     runStream,
     runCmd,
-    withConnection,
   )
 where
 
 import qualified ByteString.StrictBuilder as Builder
-import Control.Exception (bracket)
-import Data.Redis.Internal.Protocol (parse, parseArray)
-import Data.Redis.Internal.Types (Command (..), Redis (..), StreamCommand (..))
-import Data.Word (Word8)
-import Network.Socket (PortNumber)
-import qualified Network.Socket as Sock
+import Control.Arrow ((&&&))
+import qualified Control.Concurrent.KazuraQueue as Q
+import Control.Exception (SomeException, bracket, catch, throw)
+import qualified Data.IORef as IORef
+import Data.Redis.Internal.Protocol (parseArray)
+import Data.Redis.Internal.Types
 import Streamly (SerialT)
 import qualified Streamly.External.ByteString as Strict
 import qualified Streamly.Internal.Network.Inet.TCP as TCP
 import qualified Streamly.Internal.Network.Socket as SK
 import qualified Streamly.Internal.Prelude as S
 
-run :: Redis -> Command IO a -> IO a
-run (Redis sock) (Command bs parser) = do
-  SK.writeChunk sock . Strict.toArray $ Builder.builderBytes bs
-  parse parser (S.unfold SK.read sock)
+newPool :: Address -> Int -> IO Redis
+newPool addr size = do
+  chan <- Q.newQueue
+  ref <- IORef.newIORef 0
+  pure $ Redis addr size chan ref
 
-runCmd :: (Word8, Word8, Word8, Word8) -> PortNumber -> Command IO a -> IO a
-runCmd ip port cmd = withConnection ip port (`run` cmd)
+getConnection :: Redis -> IO Connection
+getConnection Redis {address, maxSize, connections, active} = do
+  res <- Q.tryReadQueue connections
+  case res of
+    Just conn -> pure conn
+    Nothing -> do
+      wait <- IORef.atomicModifyIORef' active claim
+      if wait
+        then Q.readQueue connections
+        else catch connect $ \(ex :: SomeException) -> do
+          IORef.atomicModifyIORef' active $ (-) 1 &&& const ()
+          throw ex
+  where
+    connect = do
+      conn <- Connection <$> TCP.connect (ip address) (port address)
+      Q.writeQueue connections conn
+      pure conn
+    claim cnt
+      | cnt < maxSize = (cnt + 1, False)
+      | otherwise = (cnt, True)
 
-runStream :: (Word8, Word8, Word8, Word8) -> PortNumber -> StreamCommand IO a -> SerialT IO a
-runStream ip port (StreamCommand bs parser) =
-  S.bracketIO (TCP.connect ip port) Sock.close $ \sock -> S.concatM $ do
-    SK.writeChunk sock $ Strict.toArray $ Builder.builderBytes bs
-    parseArray parser $ S.unfold SK.read sock
+releaseConnection :: Redis -> Connection -> IO ()
+releaseConnection redis =
+  Q.writeQueue (connections redis)
 
-withConnection :: (Word8, Word8, Word8, Word8) -> PortNumber -> (Redis -> IO a) -> IO a
-withConnection ip port f = bracket (TCP.connect ip port) Sock.close (f . Redis)
+runCmd :: Redis -> Command IO a -> IO a
+runCmd redis (Command bs parser) =
+  bracket (getConnection redis) (releaseConnection redis) $ \(Connection sock) -> do
+    SK.writeChunk sock . Strict.toArray $ Builder.builderBytes bs
+    S.parseD parser (S.unfold SK.read sock)
+
+runStream :: Redis -> StreamCommand IO a -> SerialT IO a
+runStream redis (StreamCommand bs parser) =
+  S.bracketIO (getConnection redis) (releaseConnection redis) $ \(Connection sock) ->
+    S.concatM $ do
+      SK.writeChunk sock $ Strict.toArray $ Builder.builderBytes bs
+      parseArray parser $ S.unfold SK.read sock
