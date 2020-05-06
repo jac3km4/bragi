@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9f1d2e45b0ab62c2c301f7e5a54208d9c78a738600f218ce278e8c43d2d19f50
+-- hash: d67164f2ad4ccefbe14672bfc3175fa0dad1a80c9f3f732dbc29803da633dd29
 
 name:           bragi
 version:        0.1.0.0
@@ -35,7 +35,7 @@ library
       Paths_bragi
   hs-source-dirs:
       src
-  default-extensions: OverloadedStrings DeriveFunctor StrictData
+  default-extensions: OverloadedStrings DeriveFunctor StrictData NamedFieldPuns ScopedTypeVariables
   ghc-options: -Wall
   build-depends:
       base >=4.7 && <5
@@ -55,7 +55,7 @@ test-suite bragi-test
       Paths_bragi
   hs-source-dirs:
       test
-  default-extensions: OverloadedStrings DeriveFunctor StrictData
+  default-extensions: OverloadedStrings DeriveFunctor StrictData NamedFieldPuns ScopedTypeVariables
   ghc-options: -threaded -rtsopts "-with-rtsopts=-N -qg" -O -fdicts-strict
   build-depends:
       base >=4.7 && <5

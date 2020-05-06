@@ -1,4 +1,10 @@
 resolver: lts-15.11
+setup-info:
+  ghc:
+     x86_64-linux-tinfo6:
+        8.10.1:
+           url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-x86_64-deb10-linux.tar.xz"
+compiler: ghc-8.10.1
 packages:
 - .
 extra-deps:
