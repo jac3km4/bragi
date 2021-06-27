@@ -1,6 +1,6 @@
 module Data.Redis.Internal.Protocol
   ( PR.Parser,
-    S.parse,
+    IP.parse,
     resp,
     string,
     bulkString,
@@ -22,11 +22,11 @@ import qualified Data.ByteString.Char8 as BS
 import Data.Functor
 import Data.Redis.Internal.Types (RedisException (..), Resp (..))
 import Data.Word (Word8)
-import Streamly (SerialT)
 import qualified Streamly.Data.Fold as FL
 import Streamly.Internal.Data.Parser (Parser)
 import qualified Streamly.Internal.Data.Parser as PR
-import qualified Streamly.Internal.Prelude as S
+import qualified Streamly.Internal.Data.Stream.IsStream as IP
+import qualified Streamly.Prelude as S
 
 resp :: MonadCatch m => Parser m Word8 Resp
 resp =
@@ -36,39 +36,39 @@ resp =
     <|> RespArray <$> array
     <|> RespError <$> respError
 
-string :: MonadThrow m => Parser m Word8 ByteString
+string :: MonadCatch m => Parser m Word8 ByteString
 string = char '+' *> line
 
 bulkString :: MonadCatch m => Parser m Word8 (Maybe ByteString)
-bulkString = char '$' *> (empty <|> body)
+bulkString = char '$' *> (nothing <|> body)
   where
-    empty = char '-' *> char '1' $> Nothing
+    nothing = char '-' *> char '1' $> Nothing
     body = line *> fmap Just line
 
-int :: MonadThrow m => Parser m Word8 Int
+int :: MonadCatch m => Parser m Word8 Int
 int = char ':' *> fmap (read . BS.unpack) line
 
-array :: MonadThrow m => Parser m Word8 Int
+array :: MonadCatch m => Parser m Word8 Int
 array = char '*' *> fmap (read . BS.unpack) line
 
-respError :: MonadThrow m => Parser m Word8 ByteString
+respError :: MonadCatch m => Parser m Word8 ByteString
 respError = char '-' *> line
 
-line :: MonadThrow m => Parser m Word8 ByteString
+line :: MonadCatch m => Parser m Word8 ByteString
 line =
   Builder.builderBytes
     <$> PR.takeWhile (/= toEnum (fromEnum '\r')) (FL.foldMap Builder.word8)
     <* char '\r'
     <* char '\n'
 
-char :: MonadThrow m => Char -> Parser m Word8 Word8
-char c = PR.satisfy (== (toEnum (fromEnum c)))
+char :: MonadCatch m => Char -> Parser m Word8 Word8
+char c = PR.satisfy (== toEnum (fromEnum c))
 
 -- consumes an array header and returns the stream of underlying elements
-parseArray :: MonadThrow m => Parser m Word8 a -> SerialT m Word8 -> m (SerialT m a)
+parseArray :: MonadThrow m => Parser m Word8 a -> S.SerialT m Word8 -> m (S.SerialT m a)
 parseArray fa s = do
   (len, rem') <- extractHeader id s
-  pure . S.take len $ S.splitParse fa rem'
+  pure . S.take len $ IP.parseMany fa rem'
   where
     extractHeader acc = S.uncons >=> extractHeader' acc
     extractHeader' acc (Just (c, rem')) =
