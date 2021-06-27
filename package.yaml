@@ -23,8 +23,8 @@ library:
   ghc-options:
   - -Wall
   dependencies:
-  - streamly >= 0.7.2
-  - streamly-bytestring >= 0.1
+  - streamly >= 0.8.0
+  - streamly-bytestring >= 0.2
   - bytestring >= 0.10
   - bytestring-strict-builder >= 0.4
   - mtl >= 2.2
@@ -41,4 +41,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - bragi
-    - streamly >= 0.7.2
+    - streamly >= 0.8.0

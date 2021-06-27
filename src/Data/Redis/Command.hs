@@ -19,7 +19,7 @@ import Data.Redis.Internal.Types (Command (..), StreamCommand (..))
 import Data.Word (Word8)
 
 command :: [ByteString] -> Parser m Word8 a -> Command m a
-command parts parser = Command (writeArray parts) parser
+command parts = Command (writeArray parts)
 
 commandS :: [ByteString] -> Parser m Word8 a -> StreamCommand m a
 commandS bs = StreamCommand . command bs
